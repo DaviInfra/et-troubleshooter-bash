@@ -1,33 +1,52 @@
 #!/bin/bash
 
-# Identificação do Sistema
-echo "=================================================="
-echo "   SISTEMA: $(hostname)"
-echo "   DATA: $(date)"
-echo "=================================================="
+# Cores para o relatório
+VERDE='\033[0;32m'
+AMARELO='\033[1;33m'
+VERMELHO='\033[0;31m'
+NC='\033[0m' # Sem cor
 
-# 1. Teste de Conectividade (Seu código original)
-echo -e "\n--- Verificando Conectividade Externa (Google) ---"
-ping -c 4 8.8.8.8
+clear
+echo -e "${AMARELO}==========================================${NC}"
+echo -e "${AMARELO}    DIAGNÓSTICO DE REDE AVANÇADO         ${NC}"
+echo -e "${AMARELO}==========================================${NC}"
 
-# 2. Teste de Gateway (Novo)
-echo -e "\n--- Verificando Rota de Saída (Gateway) ---"
+# 1. TESTE DE INTERNET
+echo -e "\n[+] Testando saída para a Internet (Google)..."
+if ping -c 2 8.8.8.8 &> /dev/null; then
+    echo -e "${VERDE}Conectividade OK!${NC}"
+else
+    echo -e "${VERMELHO}ERRO: Sem acesso à Internet.${NC}"
+fi
+
+# 2. TESTE DE GATEWAY (O seu roteador)
+echo -e "\n[+] Testando comunicação com o Gateway..."
 GW=$(ip route | grep default | awk '{print $3}')
-echo "Seu Gateway padrão é: $GW"
-ping -c 2 $GW
+if [ -z "$GW" ]; then
+    echo -e "${VERMELHO}ERRO: Gateway padrão não encontrado!${NC}"
+else
+    if ping -c 2 $GW &> /dev/null; then
+        echo -e "${VERDE}Gateway ($GW) OK!${NC}"
+    else
+        echo -e "${VERMELHO}ERRO: Gateway ($GW) não responde (Local).${NC}"
+    fi
+fi
 
-# 3. Teste de DNS (Seu código original)
-echo -e "\n--- Testando Resolução de Nomes (DNS) ---"
-nslookup google.com
+# 3. TESTE DE DNS
+echo -e "\n[+] Testando Resolução de Nomes (DNS)..."
+if nslookup google.com &> /dev/null; then
+    echo -e "${VERDE}DNS OK!${NC}"
+else
+    echo -e "${VERMELHO}ERRO: Falha ao resolver nomes.${NC}"
+fi
 
-# 4. Configurações de IP (Seu código original)
-echo -e "\n--- Suas Interfaces de Rede ---"
-ip addr show | grep "inet "
+# 4. IDENTIFICAÇÃO DE IPs
+echo -e "\n[+] Endereços IP da Máquina:"
+echo "Interno: $(hostname -I | awk '{print $1}')"
+echo "Externo: $(curl -s ifconfig.me || echo 'Timeout')"
 
-# 5. Consumo de Memória (Novo)
-echo -e "\n--- Status de Memória do Sistema ---"
-free -h
+# 5. PORTAS EM ESCUTA
+echo -e "\n[+] Serviços rodando (Portas abertas):"
+ss -tulpn | grep LISTEN | awk '{print "Serviço: " $7 " na Porta: " $4}' | sed 's/users:(("//g' | sed 's/",.*//g'
 
-echo -e "\n=================================================="
-echo "          DIAGNÓSTICO CONCLUÍDO                 "
-echo "=================================================="
+echo -e "\n${AMARELO}==========================================${NC}"
