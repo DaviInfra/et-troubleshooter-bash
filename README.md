@@ -18,4 +18,4 @@ Para rodar o diagnóstico no seu servidor Linux:
 
 1. Clone o repositório:
 ```bash
-git clone [https://github.com/DaviInfra/net-troubleshooter-bash.git](https://github.com/DaviInfra/net-troubleshooter-bash.git)
+git clone [https://github.com/DaviInfra/et-troubleshooter-bash.git](https://github.com/DaviInfra/et-troubleshooter-bash.git)
